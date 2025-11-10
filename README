@@ -1,5 +1,14 @@
 Situation d'apprentissage et d'enseignement 3.02
 
+Nom du groupe : "Emeraldas"
+Membres du groupe :
+    MIRA Imène
+    BRISSE Chloé
+
+URL Github repositories : https://github.com/Count-Pro68/SAE_302.git
+(Projet & Planning inclu)
+
+*******************************************************
 § Objectif principal :
 Concevoir et implémenter un système de
 communication anonyme entre plusieurs clients à l'aide
@@ -12,3 +21,4 @@ routeurs qui ne connaissent que leur voisin direct).
   § Pourquoi ?
 Garantir l'anonymat des communications sur un réseau
 distribué.
+*******************************************************
