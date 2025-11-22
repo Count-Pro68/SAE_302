@@ -12,3 +12,8 @@ def generation_nb_premier():
     return secrets.choice(tuple(nbr))
 print(generation_nb_premier())
 
+def création_clé():
+    p=generation_nb_premier()
+    q=generation_nb_premier()
+    e=65537
+
