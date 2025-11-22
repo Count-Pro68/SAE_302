@@ -1,0 +1,9 @@
+VM	|	Rôle					|	Adresses IPv4		|	Fichiers                    |
+____|___________________________|_______________________|_______________________________|
+    |                           |                       |                               |
+VM1	|	Master					|	192.168.100.10		|	MariaDB                     |
+VM2	|	Routeurs				|	192.168.100.11		|	routeur.py(R1,R2,R3)        |
+VM3	|	Client + optionnel R3	|	192.168.100.12		|	client.py + gui_client.py   |
+
+
+Virtual box => Réseau => Créer => 192.168.56.1 /24 (pas de DHCP !!)
