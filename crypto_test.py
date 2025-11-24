@@ -49,7 +49,7 @@ def decrypt_int(c_int, priv):
     n, d = priv
     return pow(c_int, d, n)
 
-# helpers to convert bytes <-> int
+# aide à convertir bytes = int
 def bytes_to_int(b: bytes) -> int:
     return int.from_bytes(b, byteorder='big')
 
