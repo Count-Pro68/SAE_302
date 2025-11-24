@@ -1,5 +1,5 @@
-from sympy import randprime
-import secrets
+from sympy import randprime, mod_inverse
+import random
 def generation_nb_premier():
     """
     La fonction permet de générer quatre nombres premiers au hasard compris entre 1.000 et 100.000,
@@ -9,11 +9,25 @@ def generation_nb_premier():
     :retourn : nombre premier tiré au hasard
     """
     nbr = {randprime(1000, 100000) for _ in range(4)}
-    return secrets.choice(tuple(nbr))
-print(generation_nb_premier())
+    return random.choice(tuple(nbr))
 
-def création_clé():
-    p=generation_nb_premier()
-    q=generation_nb_premier()
-    e=65537
+def création_clés(p = generation_nb_premier(), q = generation_nb_premier()):
+    """
+    Algorithme de création des clés de chiffrement publique et privée (RSA).
+    Utilisation de la valeur 65537 en exposant de chiffrement publique
+    :return: clé_publique et clé_privée sous forme de set (dans l'odre {n,e} et {n,d})
+    """
+    e = 65537 #exposant de chiffrement publique
+
+    n = p*q # modulo de p et q
+    phi_n = (p-1)*(q-1) #calcul de phi(n)
+
+    d = mod_inverse(e, phi_n)
+    clé_publique = {n,e}
+    clé_privée = {n,d}
+    return clé_publique, clé_privée
+
+def chiffrement()
+
+print(création_clés())
 
