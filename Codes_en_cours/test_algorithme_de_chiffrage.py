@@ -11,7 +11,7 @@ def generation_nb_premier():
     nbr = {randprime(1000, 100000) for _ in range(4)}
     return random.choice(tuple(nbr))
 
-def création_clés(p = generation_nb_premier(), q = generation_nb_premier()):
+def creation_cles(p = generation_nb_premier(), q = generation_nb_premier()):
     """
     Algorithme de création des clés de chiffrement publique et privée (RSA).
     Utilisation de la valeur 65537 en exposant de chiffrement publique
@@ -23,11 +23,13 @@ def création_clés(p = generation_nb_premier(), q = generation_nb_premier()):
     phi_n = (p-1)*(q-1) #calcul de phi(n)
 
     d = mod_inverse(e, phi_n)
-    clé_publique = {n,e}
-    clé_privée = {n,d}
-    return clé_publique, clé_privée
+    cle_publique = {n,e}
+    cle_privee = {n,d}
+    return cle_publique, cle_privee
 
-def chiffrement()
+def chiffrement(cles = creation_cles()):
+    c_publique = cles
+    return c_publique
 
 print(création_clés())
 
