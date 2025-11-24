@@ -11,25 +11,38 @@ def generation_nb_premier():
     nbr = {randprime(1000, 100000) for _ in range(4)}
     return random.choice(tuple(nbr))
 
-def creation_cles(p = generation_nb_premier(), q = generation_nb_premier()):
+def creation_cles(demande:str, p = generation_nb_premier(), q = generation_nb_premier()):
     """
     Algorithme de création des clés de chiffrement publique et privée (RSA).
     Utilisation de la valeur 65537 en exposant de chiffrement publique
-    :return: clé_publique et clé_privée sous forme de set (dans l'odre {n,e} et {n,d})
+    :return: clé_publique et clé_privée sous forme de tuple (dans l'odre (n,e) et (n,d))
     """
+    if not isinstance(demande, str):
+        raise TypeError("La valeur de 'demande' doit être une chaîne de caractères.")
+    if demande not in ("publique", "privée"):
+        raise ValueError("La valeur de 'demande' doit être 'publique' ou 'privee'.")
+    else:
     e = 65537 #exposant de chiffrement publique
-
     n = p*q # modulo de p et q
     phi_n = (p-1)*(q-1) #calcul de phi(n)
-
     d = mod_inverse(e, phi_n)
     cle_publique = {n,e}
     cle_privee = {n,d}
-    return cle_publique, cle_privee
+    if demande == "publique":
+        return cle_publique
+    if demande == "privee":
+        return cle_privee
 
-def chiffrement(cles = creation_cles()):
-    c_publique = cles
-    return c_publique
+def chiffrement(message):
+    cle_publique = creation_cles("publique")
 
-print(création_clés())
 
+    return cript
+
+def dechiffrement(message):
+    c_privee = creation_cles("privee")
+
+    return c
+
+
+print(chiffrement())
