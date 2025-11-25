@@ -22,16 +22,16 @@ def creation_cles(demande:str, p = generation_nb_premier(), q = generation_nb_pr
     if demande not in ("publique", "privée"):
         raise ValueError("La valeur de 'demande' doit être 'publique' ou 'privee'.")
     else:
-    e = 65537 #exposant de chiffrement publique
-    n = p*q # modulo de p et q
-    phi_n = (p-1)*(q-1) #calcul de phi(n)
-    d = mod_inverse(e, phi_n)
-    cle_publique = {n,e}
-    cle_privee = {n,d}
-    if demande == "publique":
-        return cle_publique
-    if demande == "privee":
-        return cle_privee
+        e = 65537 #exposant de chiffrement publique
+        n = p*q # modulo de p et q
+        phi_n = (p-1)*(q-1) #calcul de phi(n)
+        d = mod_inverse(e, phi_n)
+        cle_publique = (n,e)
+        cle_privee = (n,d)
+        if demande == "publique":
+            return cle_publique
+        if demande == "privee":
+            return cle_privee
 
 def chiffrement(message):
     cle_publique = creation_cles("publique")
