@@ -16,13 +16,23 @@ class RSA:
         nbr = {randprime(1000, 100000) for _ in range(4)}
         return random.choice(tuple(nbr))
 
-    def creation_cles(self, demande:str):
+    def demande_cles(self, demande:str):
         if not isinstance(demande, str):
             raise TypeError("La valeur de 'demande' doit être une chaîne de caractères.")
-        if demande not in ("publique", "privée"):
+        if demande not in ("publique", "privee"):
             raise ValueError("La valeur de 'demande' doit être 'publique' ou 'privee'.")
         else:
             if demande == "publique":
                 return self.cle_publique
-            if demande == "privee":
+            elif demande == "privee":
                 return self.cle_privee
+
+class DB:
+    def __init__(self):
+        self.cle_publique = None
+        self.cle_privee = None
+
+    def enregistrement(self):
+        self.cle_publique = RSA().demande_cles("publique")
+        self.cle_privee = RSA().demande_cles("privee")
+
