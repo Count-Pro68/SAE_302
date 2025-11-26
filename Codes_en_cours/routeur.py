@@ -39,6 +39,48 @@ threading.Thread(target=traiter_connexion, args=(conn,)).start()
 
 #décomposer dans une fonction le paquet receptionné
 """
-import RSA
+from key import RSA
+from action_key import Action
 
-def conteneurisation(message:list):
+
+def conteneurisation(message: list):
+    return message
+
+
+class DB:
+    """
+    Création d'une class DB pour 'simmuler' al base de donnée à ajouter plsu tard
+    """
+    def __init__(self):
+        self.cle = RSA().demande_cles()
+        self.cle_publique = self.cle[0]
+        self.cle_privee = self.cle[1]
+
+
+if __name__ == "__main__":
+    nb = int(input("choisir entre test 1 et test 2"))
+    if nb == 1:
+        # Test 1 : Chiffrement et déchiffrement d'un texte
+        db = DB()
+        #il est nécessaire de crée un objet db pour éviter de recharger des clé et d'avoir une incompatibilité de la clé privée avec la clé publique
+        texte = "test RSA"
+        print("texte original :", texte)
+
+        texte_chiffre = Action(texte,db).chiffrement()
+        print("texte chiffré :", texte_chiffre)
+
+        texte_dechiffre = Action(texte_chiffre,db).dechiffrement()
+        print("texte déchiffré :", texte_dechiffre)
+    elif nb == 2:
+        #Test 2: Chiffrement et dechiffrement d'un text trop long (doit générer une erreur)
+        db = DB()
+        texte = "test RSA pour un message trop long: Le chiffrement RSA est un algorithme de cryptographie asymétrique, très utilisé dans le commerce électronique, et plus généralement pour échanger des données confidentielles sur Internet. Cet algorithme a été décrit en 1977 par Ronald Rivest, Adi Shamir et Leonard Adleman. RSA a été breveté par le Massachusetts Institute of Technology en 1983 aux États-Unis. Le brevet a expiré le 21 septembre 2000. "
+        print("texte original :", texte)
+
+        texte_chiffre = Action(texte, db).chiffrement()
+        print("texte chiffré :", texte_chiffre)
+
+        texte_dechiffre = Action(texte_chiffre, db).dechiffrement()
+        print("texte déchiffré :", texte_dechiffre)
+    else:
+        print(f"il n'y a pas de test correspondant au nombre {nb}")
