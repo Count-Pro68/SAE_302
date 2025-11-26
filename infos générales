@@ -3,7 +3,7 @@ Méthodes d'enregistrements communes :
     => Pour chacun des commit, mettre en commentaire chaque informations justifiant le commit
 
 ****************************************************************************************
-
+Virtual box => Réseau => Créer => 192.168.56.1 /24 (pas de DHCP !!)
 ________________________________________________________________________________________
 VM	|	Rôle					|	Adresses IPv4		|	Fichiers                    |
 ____|___________________________|_______________________|_______________________________|
@@ -11,6 +11,6 @@ ____|___________________________|_______________________|_______________________
 VM1	|	Master					|	192.168.56.10		|	MariaDB                     |
 VM2	|	Routeurs				|	192.168.56.11		|	routeur.py(R1,R2,R3)        |
 VM3	|	Client + optionnel R3	|	192.168.56.12		|	client.py + gui_client.py   |
+    |                           |  (retirer pare-feu)   |                               |
 ____|___________________________|_______________________|_______________________________|
 
-Virtual box => Réseau => Créer => 192.168.56.1 /24 (pas de DHCP !!)
