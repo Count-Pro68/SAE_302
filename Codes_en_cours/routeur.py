@@ -54,32 +54,42 @@ class DB:
 
 
 class routeur(DB):
-    def __init__(self,message:str):
+    def __init__(self,message:str=None):
         #héritage
         super().__init__()
         #message
         if not isinstance(message, str):
             raise TypeError("le message doit être une une chaîne de caractères")
         self.message = message
-        self.liste = []
+        self.dictionnaire = {}
+
+    def découverte(self):
+        """
+        Cette fonction devra permettre d'envoiyer le message de début au master
+        :return: le return sera le message non crypté
+        """
+        #type de message, identifiant, @ip, port
+        self.dictionnaire["type"] = 1
+        self.dictionnaire["identifiant"] = "R1"
+        self.dictionnaire["clé"] = self.cle_publique
+        return self.dictionnaire
 
     def conteneurisation(self):
         """
         Cette fonction devra permettre de conteneuriser le message et de le crypter
         :return: le return sera en binaire (fonction b"")
         """
-
-        self.liste = (Action(self.message, DB()).chiffrement()) #Action(self.message, DB()).chiffrement(), Action(self.cle_publique, DB()).chiffrement()
-        print(Action(self.message, DB()).chiffrement(), )
-        return self.liste
+        #boucle qui pour chaque values du dictionnaire le crypte avec sa clé publique
+        return
 
     def deconteneurisation(self, message):
         """
         Cette fonction devra permettre de déconteneuriser le message et de le déchiffrer
         :return: le return sera en clair (lecture humaine)
         """
-        #réception d'un message
-        m = Action(message,DB).dechiffrement()
+        #réception d'un message et décriptage en oignon (boucle sur dictionnaire comme au desusus)
+        m = Action(self.message,DB).dechiffrement()
+
         return
 
 if __name__ == "__main__":
@@ -87,9 +97,11 @@ if __name__ == "__main__":
     message = "test RSA"
     print("message original :", message)
 
-    message_chiffre = routeur(message).conteneurisation()
+    print(routeur().conteneurisation())
+
+    message_chiffre = Action(message,DB).chiffrement()
     print("message chiffré :", message_chiffre)
-    """
+
     message_dechiffre = routeur(message_chiffre).deconteneurisation()
     print("message déchiffré :", message_dechiffre)
-    """
+
