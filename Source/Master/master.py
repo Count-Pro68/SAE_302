@@ -47,7 +47,7 @@ def listen_for_routers(timeout=2): # Création d’un socket UDP pour écouter l
     s.close() # fermeture socket
 
 def listen_for_client(timeout=2): # écoute client sur port 9100
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # IPv4 et UDP (voir commentaire ci-dessus)
     s.bind(("", CLIENT_PORT))
     """
         ("" = écoute sur toutes les interfaces locales)
