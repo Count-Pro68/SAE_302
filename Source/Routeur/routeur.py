@@ -10,7 +10,7 @@ def discover_master(port=9000):
     s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     s.settimeout(2)
 
-    message = b"WHO_IS_MASTER"
+    message = b"Qui est le master"
     s.sendto(message, ("<broadcast>", port))
 
     try:
