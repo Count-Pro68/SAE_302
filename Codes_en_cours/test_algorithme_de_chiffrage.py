@@ -54,7 +54,6 @@ def dechiffrement(message):
     length = (m.bit_length() + 7) // 8 # Convertir l'entier en texte // peut être dans la ligne en dessous mais trop long
     return m.to_bytes(length, byteorder='big').decode()
 
-print(chiffrement())
 
-if __name__ == "main":
+if __name__=="__main__":
     print(chiffrement())
