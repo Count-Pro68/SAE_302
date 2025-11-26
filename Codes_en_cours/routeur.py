@@ -1,8 +1,9 @@
 """
+"
 Socket, Thread, QT et MariaDB
 Déchiffrement d'une seul couche
-"""
-"""
+"
+"
 envoiyer son @ip
 envoi le port d'écoute
 envoie la clé publique
@@ -15,12 +16,12 @@ chaque message reçu = thread dédié
 Ecouter les port et accpter les connexions
 
 importer le système de cryptage comme une librairie
-"""
+"
 
 # [id de l'action][CLE_PUBLIQUE][PORT][@ip]
-                            """
+                            "
                             il faut crée plusieurs actions qui se suivent
-                            """
+                            "
 # cRéation d'un socket routeur
 routeur = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 routeur.bind(("0.0.0.0", ROUTEUR_PORT))
@@ -37,7 +38,7 @@ threading.Thread(target=traiter_connexion, args=(conn,)).start()
 #[TAILLE_DONNEES][DONNEES_CHIFFREES]
 
 #décomposer dans une fonction le paquet receptionné
+"""
+import RSA
 
-def conteneurisation
-
-print (3.50+3.50+3.50+3.50+1.50+3.50+3.50+3.50+1.50+1.50+3.50+1.50+1.50+0.25+0.25+0.25+0.25+0.25)
+def conteneurisation(message:list):
