@@ -1,6 +1,6 @@
 from key import RSA
 from action_key import Action
-from routeur import routeur
+from routeur import DB
 
 if __name__ == "__main__":
     print("Test n°0: test du fonctionnement du fichier Key ;")
@@ -15,7 +15,7 @@ if __name__ == "__main__":
         print(RSA().demande_cles())
     elif nb == 1:
         # Test 1 : Chiffrement et déchiffrement d'un texte
-        db = routeur()
+        db = DB()
         #il est nécessaire de crée un objet db pour éviter de recharger des clé et d'avoir une incompatibilité de la clé privée avec la clé publique
         texte = "test RSA"
         print("texte original :", texte)
@@ -27,7 +27,7 @@ if __name__ == "__main__":
         print("texte déchiffré :", texte_dechiffre)
     elif nb == 2:
         #Test 2: Chiffrement et dechiffrement d'un text trop long (doit générer une erreur)
-        db = routeur()
+        db = DB()
         texte = "test RSA pour un message trop long: Le chiffrement RSA est un algorithme de cryptographie asymétrique, très utilisé dans le commerce électronique, et plus généralement pour échanger des données confidentielles sur Internet. Cet algorithme a été décrit en 1977 par Ronald Rivest, Adi Shamir et Leonard Adleman. RSA a été breveté par le Massachusetts Institute of Technology en 1983 aux États-Unis. Le brevet a expiré le 21 septembre 2000. "
         print("texte original :", texte)
 
