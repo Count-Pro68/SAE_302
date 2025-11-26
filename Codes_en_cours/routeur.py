@@ -61,15 +61,17 @@ class routeur(DB):
         if not isinstance(message, str):
             raise TypeError("le message doit être une une chaîne de caractères")
         self.message = message
-        self.liste = list
+        self.liste = []
 
     def conteneurisation(self):
         """
         Cette fonction devra permettre de conteneuriser le message et de le crypter
         :return: le return sera en binaire (fonction b"")
         """
-        self.liste.append(self.message, self.cle_publique)
-        return bin(Action(self.liste, DB().chiffrement()))
+
+        self.liste = (Action(self.message, DB()).chiffrement()) #Action(self.message, DB()).chiffrement(), Action(self.cle_publique, DB()).chiffrement()
+        print(Action(self.message, DB()).chiffrement(), )
+        return self.liste
 
     def deconteneurisation(self, message):
         """
@@ -81,7 +83,7 @@ class routeur(DB):
         return
 
 if __name__ == "__main__":
-    # il est nécessaire de crée un objet db pour éviter de recharger des clé et d'avoir une incompatibilité de la clé privée avec la clé publique
+    # il est nécessaire de créer un objet db pour éviter de recharger des clés et d'avoir une incompatibilité de la clé privée avec la clé publique
     message = "test RSA"
     print("message original :", message)
 

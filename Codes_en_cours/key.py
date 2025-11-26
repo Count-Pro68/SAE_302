@@ -22,7 +22,7 @@ class RSA:
         génération de quatre nombres premiers compris entre les valeurs a et b, ici 2^200 et 2^201
         :return: un des 4 nombre sélectionné
         """
-        nbr = {randprime(2**200, 2**201) for _ in range(4)}
+        nbr = {randprime(2**100, 2**101) for _ in range(4)}
         return random.choice(tuple(nbr))
 
     def demande_cles(self):
