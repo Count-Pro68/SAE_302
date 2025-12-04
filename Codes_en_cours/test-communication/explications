@@ -1,0 +1,86 @@
+Explication ligne par ligne — serveur.py
+
+Je détaille chaque bloc important (les commentaires inline dans le fichier couvrent déjà beaucoup) :
+
+import socket
+→ charge la bibliothèque standard pour les sockets (TCP/UDP).
+
+import threading
+→ permet de lancer un thread par client pour gérer plusieurs connexions en parallèle.
+
+import sys
+→ utile pour quitter proprement si l'initialisation échoue.
+
+HOST = "127.0.0.1" / PORT = 5000
+→ adresse et port où le serveur écoute. 127.0.0.1 signifie local seulement.
+
+def handle_client(conn, addr):
+→ fonction appelée dans un thread pour gérer un client donné. conn est le socket lié au client ; addr est le tuple (IP, port).
+
+data = conn.recv(1024)
+→ lit jusqu'à 1024 octets envoyés par le client. C’est bloquant : le thread attend les données.
+
+if not data:
+→ si recv() retourne b'', cela signifie que le client a fermé la connexion.
+
+message = data.decode()
+→ convertit les octets reçus en chaîne UTF-8.
+
+conn.sendall(reply.encode())
+→ envoie la réponse au client ; sendall garantit l'envoi complet des octets.
+
+conn.close() (dans finally)
+→ fermeture du socket client, libère la ressource.
+
+Dans main() :
+
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) : crée un socket TCP IPv4.
+
+server.setsockopt(... SO_REUSEADDR...) : permet de redémarrer rapidement le serveur sans attendre la libération du port.
+
+server.bind((HOST, PORT)) : associe le socket à l'adresse.
+
+server.listen() : met le socket en écoute.
+
+conn, addr = server.accept() : accepte une connexion entrante et retourne un socket pour communiquer avec ce client.
+
+threading.Thread(..., daemon=True).start() : lance un thread "daemon" (se termine lorsque le programme principal se termine) pour gérer le client.
+
+try/except KeyboardInterrupt : permet d'arrêter proprement le serveur avec Ctrl+C.
+
+server.close() : fermeture du socket d'écoute à la sortie.
+
+Explication ligne par ligne — client.py
+
+import socket
+→ outil réseau.
+
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+→ crée un socket TCP et l'ouvre dans un contexte with — il sera fermé automatiquement (utile pour la propreté du code).
+
+s.connect((HOST, PORT))
+→ établit la connexion TCP vers le serveur.
+
+s.sendall(message.encode())
+→ envoie le message encodé. sendall tente d'envoyer tout le message même si l'envoi se fait en plusieurs fragments.
+
+data = s.recv(1024)
+→ lit la réponse du serveur (bloquant jusqu'à réception ou fermeture).
+
+Gestion des exceptions :
+
+ConnectionRefusedError si le serveur n'est pas démarré.
+
+except Exception pour attraper d'autres erreurs éventuelles.
+
+Remarques / bonnes pratiques
+
+Les scripts utilisent 127.0.0.1, donc ils ne sont joignables que sur la même machine. Pour tests réseau entre machines, remplace par l’IP locale du serveur (ex : 192.168.1.10) et assure-toi que le pare-feu le permet.
+
+recv(1024) limite la taille à 1024 octets — pour de plus gros messages, il faut un mécanisme de boucle ou un protocole pour connaître la longueur.
+
+Ici le protocole est très simple : client envoie un message, serveur répond une fois, puis ferme la connexion. Pour un chat bidirectionnel continu, il faudrait boucler sur recv() côté client et côté serveur.
+
+daemon=True pour les threads permet au programme principal de finir sans attendre les threads non terminés ; pour des services réels, mieux vaut gérer proprement l’arrêt des threads.
+
+Pour la sécurité et la robustesse en production, prévoir timeouts (socket.settimeout()), gestion des injections, chiffrement TLS, etc.
