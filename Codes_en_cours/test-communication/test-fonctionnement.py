@@ -3,7 +3,7 @@ Tests rapides
 
 Ouvre un terminal, lance :
 """
-#python3 serveur.py
+#python serveur.py
 
 """
 Tu dois voir : [Serveur] En écoute sur 127.0.0.1:5000
@@ -11,7 +11,7 @@ Tu dois voir : [Serveur] En écoute sur 127.0.0.1:5000
 Dans un autre terminal :
 """
 
-#python3 client.py
+#python client.py
 
 """
 Tu dois voir côté client : [Serveur] Message bien reçu
