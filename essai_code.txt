@@ -1,0 +1,223 @@
+*********************************************************************************************************************************************************
+CODE MASTER A vérifier
+*********************************************************************************************************************************************************
+
+import socket  # Import de la bibliothèque socket pour gérer UDP/TCP
+import time    # Import pour faire des pauses entre les cycles
+import threading  # Import pour utiliser des threads simultanément
+
+DISCOVER_PORT = 9000  # Port d'écoute pour les routeurs
+CLIENT_PORT = 9100    # Port d'écoute pour les clients
+
+routers = {}  # Dictionnaire contenant les routeurs détectés
+routers_lock = threading.Lock()  # Verrou pour protéger l’accès concurrent au dictionnaire
+
+stop_event = threading.Event()  # Évènement permettant d’arrêter proprement tous les threads
+
+
+def parse_router_message(msg):  # Fonction qui analyse le message reçu d'un routeur
+    parts = msg.split(";")  # Découpe la chaîne sur chaque ";"
+    if parts[0] != "ROUTER":  # Vérifie que le message vient bien d'un routeur
+        return None  # Si ce n’est pas un routeur → on ignore
+    d = {}  # Dictionnaire pour stocker les champs
+    for p in parts[1:]:  # Analyse chaque champs après "ROUTER"
+        if "=" not in p:  # Vérifie que le champ contient une clé et une valeur
+            continue  # Ignore les champs invalides
+        k, v = p.split("=", 1)  # Sépare la clé et la valeur
+        d[k] = v  # Enregistre dans le dictionnaire
+    if "ID" not in d or "PORT" not in d or "N" not in d or "E" not in d:  # Vérifie que les champs essentiels existent
+        return None  # Retourne None si quelque chose manque
+    return d  # Retourne le dictionnaire contenant les infos routeur
+
+
+def broadcast_discover_loop(interval=1.0):  # Thread qui envoie régulièrement un broadcast DISCOVER
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Création socket UDP IPv4
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)  # Active le mode broadcast
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Permet la réutilisation rapide du port
+
+    print(f"[BROADCAST] Thread démarré, envoi toutes les {interval}s")  # Message d’information
+
+    while not stop_event.is_set():  # Boucle tant que le programme n’est pas arrêté
+        s.sendto(b"DISCOVER", ("<broadcast>", DISCOVER_PORT))  # Envoie du message DISCOVER en broadcast
+        stop_event.wait(interval)  # Pause entre les envois (mais interruption possible)
+    s.close()  # Fermeture du socket UDP
+    print("[BROADCAST] Thread arrêté.")  # Message de fin
+
+
+def listen_for_routers_loop():  # Thread d’écoute des routeurs
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Création socket UDP IPv4
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Réutilisation du port
+    s.bind(("", DISCOVER_PORT))  # Écoute sur toutes les interfaces locales, port DISCOVER_PORT
+    s.settimeout(1.0)  # Timeout court pour vérifier régulièrement stop_event
+
+    print(f"[ROUTERS] Écoute des routeurs sur le port {DISCOVER_PORT}")  # Message d'information
+
+    while not stop_event.is_set():  # Boucle jusqu'à demande d'arrêt
+        try:
+            data, addr = s.recvfrom(4096)  # Réception d’un message UDP (data + adresse source)
+            msg = data.decode().strip()  # Décodage du message en texte
+            info = parse_router_message(msg)  # Analyse du message reçu
+
+            if info:  # Si le message est valide
+                info["IP"] = addr[0]  # Ajoute l’adresse IP du routeur
+                with routers_lock:  # Verrouillage du dictionnaire
+                    routers[info["ID"]] = info  # Enregistre ou met à jour un routeur
+                print("[MASTER] Routeur détecté :", info)  # Affichage debug
+            else:
+                print("[ROUTERS] Message non reconnu :", msg)  # Si message invalide
+        except socket.timeout:
+            continue  # Timeout → continue la boucle
+        except Exception as e:
+            print("[ROUTERS] Erreur réception :", e)  # Affiche une erreur et continue
+    s.close()  # Ferme socket UDP
+    print("[ROUTERS] Thread arrêté.")  # Message fin du thread
+
+
+def listen_for_client_loop():  # Thread d'écoute des clients
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Création d’un socket UDP
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Réutilisation du port
+    s.bind(("", CLIENT_PORT))  # Écoute sur port CLIENT_PORT
+    s.settimeout(1.0)  # Timeout court
+
+    print(f"[CLIENT] Thread écoute client sur port {CLIENT_PORT}")  # Info debug
+
+    while not stop_event.is_set():  # Boucle jusqu'à arrêt
+        try:
+            data, addr = s.recvfrom(4096)  # Réception du client
+            text = data.decode().strip()  # Décodage
+            if text == "GET_LIST":  # Si le client demande la liste
+                print(f"[MASTER] Demande GET_LIST de {addr}")  # Debug
+
+                with routers_lock:  # Lecture sécurisée du dictionnaire
+                    values = list(routers.values())  # Copie des infos routeurs
+
+                response = "LIST;"  # Prépare la réponse
+                first = True  # Pour gérer les séparateurs |
+                for r in values:  # Parcourt tous les routeurs connus
+                    if not first:
+                        response += "|"  # Ajoute un séparateur
+                    response += f"ID={r['ID']},IP={r['IP']},PORT={r['PORT']},N={r['N']},E={r['E']}"  # Construit le champ routeur
+                    first = False  # Après le premier passage
+
+                s.sendto(response.encode(), addr)  # Envoie la liste au client
+                print("[MASTER] Liste envoyée :", response)  # Debug
+        except socket.timeout:
+            continue  # Timeout normal
+        except Exception as e:
+            print("[CLIENT] Erreur réception ou envoi :", e)  # Message erreur
+    s.close()  # Fermeture socket UDP
+    print("[CLIENT] Thread arrêté.")  # Info fin de thread
+
+
+def main():  # Fonction principale
+    print("MASTER lancé (multithread). CTRL+C pour arrêter.")  # Message au démarrage
+
+    # Lancement threads
+    t1 = threading.Thread(target=broadcast_discover_loop, daemon=True)  # Thread broadcast
+    t1.start()  # Démarrage du thread
+
+    t2 = threading.Thread(target=listen_for_routers_loop, daemon=True)  # Thread écoute routeurs
+    t2.start()  # Démarrage
+
+    t3 = threading.Thread(target=listen_for_client_loop, daemon=True)  # Thread écoute client
+    t3.start()  # Démarrage
+
+    try:
+        while True:  # Boucle principale
+            time.sleep(5)  # Pause entre deux affichages
+            with routers_lock:  # Accès sécurisé au dictionnaire
+                print(f"[MASTER] Nombre de routeurs connus : {len(routers)}")  # État actuel
+    except KeyboardInterrupt:
+        print("\n[MASTER] Arrêt demandé. Fermeture...")  # Message si CTRL+C
+        stop_event.set()  # Active le signal d'arrêt
+        time.sleep(1)  # Pause courte pour laisser les threads fermer
+        print("[MASTER] Terminé.")  # Fin propre du programme
+
+
+if __name__ == "__main__":
+    main()  # Appel de la fonction principale
+
+*********************************************************************************************************************************************************
+CODE ROUTER A vérifier
+*********************************************************************************************************************************************************
+
+import socket  # Permet de créer des sockets UDP/TCP pour communiquer
+import time    # Permet de faire des pauses si nécessaire
+import threading  # Permet d’exécuter plusieurs fonctions en même temps
+
+DISCOVER_PORT = 9000  # Port du Master pour recevoir les réponses DISCOVER
+ROUTER_BASE_PORT = 9101  # Port de base pour les routeurs (chaque routeur aura un port différent)
+
+
+def get_my_ip():  # Fonction qui récupère l'adresse IP locale de la VM
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Création d'un socket UDP (ne sera pas utilisé pour envoyer)
+    try:
+        s.connect(("8.8.8.8", 80))  # Connexion simulée à Google DNS (ne s’envoie pas vraiment)
+        return s.getsockname()[0]  # Retourne l’IP locale détectée automatiquement
+    except:
+        return "127.0.0.1"  # En cas d’échec retourne localhost
+    finally:
+        s.close()  # Fermeture du socket
+
+
+def listen_master_broadcast():  # Thread qui écoute le message DISCOVER du Master
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Crée un socket UDP
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Autorise réutilisation du port
+    s.bind(("", DISCOVER_PORT))  # Écoute sur tout le réseau local sur le port DISCOVER_PORT
+
+    print("[ROUTEUR] En attente du broadcast DISCOVER...")  # Message informatif
+
+    while True:  # Boucle infinie
+        data, addr = s.recvfrom(4096)  # Attend un message UDP venant du Master
+        msg = data.decode().strip()  # Décodage en texte
+
+        if msg == "DISCOVER":  # Si Master envoie "DISCOVER"
+            return addr[0]  # Retourne l’IP du Master qui a envoyé le broadcast
+
+
+def send_router_info(master_ip, router_id, router_port, n, e):  # Fonction pour envoyer l'annonce au Master
+    msg = f"ROUTER;ID={router_id};PORT={router_port};N={n};E={e}"  # Format imposé par ton Master
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Socket UDP pour envoyer le message
+    s.sendto(msg.encode(), (master_ip, DISCOVER_PORT))  # Envoie au Master via DISCOVER_PORT
+    s.close()  # Ferme le socket
+
+    print(f"[ROUTEUR {router_id}] Informations envoyées au master {master_ip}")  # Message debug
+
+
+def routeur_main(router_id, router_port):  # Fonction principale d'un routeur
+    print(f"[ROUTEUR {router_id}] Démarrage du routeur...")  # Message d’info
+
+    ip = get_my_ip()  # Récupère son IP automatiquement
+    print(f"[ROUTEUR {router_id}] Adresse IP détectée : {ip}")  # Affiche l’IP
+
+    print(f"[ROUTEUR {router_id}] En attente du master...")  # Info
+    master_ip = listen_master_broadcast()  # Attend le message DISCOVER du Master
+
+    print(f"[ROUTEUR {router_id}] Master détecté : {master_ip}")  # Affiche l’adresse du Master
+
+    # Pas de RSA dans ce code (ta version ne le demande pas ici), on simule N et E
+    fake_n = 123456789  # Valeur factice N (à remplacer par ton vrai RSA plus tard)
+    fake_e = 65537      # Valeur factice E
+
+    send_router_info(master_ip, router_id, router_port, fake_n, fake_e)  # Envoi au Master
+
+    print(f"[ROUTEUR {router_id}] Enregistré. Routeur opérationnel.")  # Message final
+
+    while True:  # Le routeur reste vivant pour garder sa présence
+        time.sleep(10)  # Pause de 10 secondes (le routeur n’a rien d’autre à faire ici)
+
+
+if __name__ == "__main__":  # Code exécuté seulement si run direct
+    import sys  # Permet de lire les arguments en ligne de commande
+
+    if len(sys.argv) < 2:  # Vérifie qu’un ID est fourni
+        print("Usage : python router.py R1")  # Message d’aide
+        exit(1)  # Quitte le programme
+
+    router_id = sys.argv[1]  # Premier argument : ID du routeur
+
+    # Calcul du port dynamique en fonction de l’ID
+    router_port = ROUTER_BASE_PORT + (ord(router_id[-1]) % 10)  # Exemple simple : R1 → 9102, R2 → 9103
+
+    routeur_main(router_id, router_port)  # Lancement du routeur
