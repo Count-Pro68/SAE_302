@@ -3,10 +3,22 @@
 
 import socket                           # Module pour la communication réseau
 import threading                        # Module pour le multithreading
+from key import RSA                     # Module pour le chiffrement
+from action_key import Action           # ''
+
+class DB:
+    """
+    Class pour stocker les informations comme les clés et éviter par erreur d'en régénérer
+    """
+    def __init__(self):
+        #création des clés
+        self.cle_publique, self.cle_privee = RSA().demande_cles()
 
 
-class NoeudIntermediaire:               # Routeur renommé
+class NoeudIntermediaire(DB):               # Routeur renommé
     def __init__(self, nom, ip_locale, port_locale, ip_master, port_master):
+        #héritage
+        super().__init__()
         self.nom = nom                   # Nom ou ID du routeur
         self.ip = ip_locale              # IP du routeur
         self.port = port_locale          # Port du routeur
