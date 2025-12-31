@@ -3,6 +3,17 @@
 
 import socket                           # Module pour la communication réseau
 import threading                        # Module pour le multithreading
+from key import RSA                     # Module pour le chiffrement
+from action_key import Action           # ''
+
+class DB:
+    """
+    Class pour stocker les informations comme les clés et éviter par erreur d'en régénérer
+    """
+    def __init__(self):
+        #création des clés
+        self.cle_publique, self.cle_privee = RSA().demande_cles()
+
 
 
 class NoeudIntermediaire:               # Routeur renommé
